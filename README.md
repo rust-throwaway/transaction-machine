@@ -6,7 +6,7 @@ This repository contains a simple, toy payments engine implemented using Rust.
 ---
 To generate data for the application. Run
 ```
-./application generate count
+cargo run generate count
 ```
 
 Where `count` is the number of transactions to be generated. This will output a file named `generated.csv`.
@@ -15,7 +15,7 @@ Where `count` is the number of transactions to be generated. This will output a 
 
 To run the application:
 ```
-./application input.csv
+cargo run input.csv
 ```
 
 Where `input.csv` is the name of the CSV file to process.
