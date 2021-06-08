@@ -1,34 +1,25 @@
 use crate::client::{deserialize, ClientState, ClientStore, Keyspace};
-use crate::db::{DiskStore, StoreError};
-use rocksdb::IteratorMode;
+use crate::db::{MemStore, Poisoned,  StoreError};
 use serde::Serialize;
 use std::fmt::{Display, Formatter};
 
 /// Queries `store`'s `Clients` keyspace. Deserializing every client state record and printing it
 /// to the standard output.
-pub fn write_state(store: ClientStore<DiskStore>) -> Result<(), StoreError> {
+pub fn write_state(store: ClientStore<MemStore>) -> Result<(), StoreError> {
     let inner = store.inner().delegate();
-    let cf_handle = inner
-        .cf_handle(Keyspace::Clients.name())
+    let read_lock = inner
+        .read()
+        .map_err(|_| StoreError::Read(Box::new(Poisoned)))?;
+    let transactions_space = read_lock
+        .get(Keyspace::Clients.name())
         .ok_or(StoreError::KeyspaceNotFound)?;
-    let mut it = inner.iterator_cf(cf_handle, IteratorMode::Start);
 
     write_headers();
 
-    loop {
-        if it.valid() {
-            match it.next() {
-                Some((_key, value)) => {
-                    let state = deserialize::<ClientState>(value.as_ref())?;
-                    let state = State::from(state);
-                    println!("{}", state);
-                }
-                None => break,
-            }
-        } else {
-            let err = it.status().unwrap_err();
-            return Err(StoreError::Deserialize(Box::new(err)));
-        }
+    for (_key, value) in transactions_space {
+        let state = deserialize::<ClientState>(value.as_ref())?;
+        let state = State::from(state);
+        println!("{}", state);
     }
 
     Ok(())

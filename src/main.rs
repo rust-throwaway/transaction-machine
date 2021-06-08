@@ -17,11 +17,10 @@ mod io;
 mod parser;
 mod transaction;
 
-use crate::client::ClientStore;
-use crate::db::{DiskStore, StoreError};
+use crate::db::StoreError;
 use crate::io::IoTask;
 
-use crate::data::generate_csv;
+use crate::data::{generate_csv, mem_store};
 use crate::parser::reader::{reader_task, ReaderError};
 use crate::parser::writer::write_state;
 use futures::future::try_join;
@@ -35,7 +34,6 @@ use tokio::sync::mpsc;
 const IO_BUFFER_SIZE: usize = 256;
 const BRIDGE_BUFFER_SIZE: usize = 1024;
 const GENERATE_COMMAND: &str = "generate";
-const DEFAULT_DIR: &str = "store";
 
 #[tokio::main]
 async fn main() -> Result<(), TaskError> {
@@ -64,7 +62,7 @@ async fn main() -> Result<(), TaskError> {
 async fn run<P: AsRef<Path>>(input_file: P) -> Result<(), TaskError> {
     let (tx, rx) = mpsc::channel(IO_BUFFER_SIZE);
 
-    let store = ClientStore::new(DiskStore::new(DEFAULT_DIR)?);
+    let store = mem_store();
     let io_task = IoTask::new(rx, store.clone())
         .run(BRIDGE_BUFFER_SIZE)
         .map_err(TaskError::Store);

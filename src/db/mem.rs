@@ -21,11 +21,15 @@ impl MemStore {
             keyspaces: Arc::new(RwLock::new(keyspaces)),
         }
     }
+
+    pub fn delegate(&self) -> Arc<RwLock<MemStoreMap>> {
+        self.keyspaces.clone()
+    }
 }
 
 #[derive(Debug, Error)]
 #[error("Mutex poisoned")]
-struct Poisoned;
+pub struct Poisoned;
 
 impl StoreEngine for MemStore {
     fn put(&self, keyspace: Keyspace, key: &[u8], value: &[u8]) -> Result<(), StoreError> {

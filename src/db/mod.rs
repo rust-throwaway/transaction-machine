@@ -1,19 +1,20 @@
 #[cfg(test)]
 mod tests;
 
+#[cfg(feature = "rocks")]
 mod disk;
+#[cfg(feature = "rocks")]
+pub use crate::db::disk::DiskStore;
+
 mod mem;
+pub use crate::db::mem::{MemStore, Poisoned};
 
 use crate::client::Keyspace;
-pub use crate::db::disk::DiskStore;
-pub use crate::db::mem::MemStore;
 use std::error::Error;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum StoreError {
-    #[error("The store failed to initialise: `{0}`")]
-    InitialisationError(Box<dyn Error + Send>),
     #[error("An error was produced when reading from the store: `{0}`")]
     Read(Box<dyn Error + Send>),
     #[error("An error was produced when reading writing to the store: `{0}`")]

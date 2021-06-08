@@ -10,8 +10,8 @@ use std::convert::TryFrom;
 
 const OUT_FILE_NAME: &str = "generated.csv";
 
-/// Produces an empty memory store to sink generated records in to.
-fn store() -> ClientStore<MemStore> {
+/// Produces an empty memory store initialised with the default keyspaces
+pub fn mem_store() -> ClientStore<MemStore> {
     let mut keyspaces = FnvHashMap::default();
     let transactions = FnvHashMap::default();
     let clients = FnvHashMap::default();
@@ -30,7 +30,7 @@ pub fn generate_csv(count: usize) {
     let mut transactions: Vec<Transaction> = Vec::new();
     let mut disputed_transactions = Vec::new();
 
-    let store = store();
+    let store = mem_store();
 
     for i in 0..count {
         let dispute = rng.gen_bool(0.1);
