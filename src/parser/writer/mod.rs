@@ -1,5 +1,5 @@
 use crate::client::{deserialize, ClientState, ClientStore, Keyspace};
-use crate::db::{MemStore, Poisoned,  StoreError};
+use crate::db::{MemStore, Poisoned, StoreError};
 use serde::Serialize;
 use std::fmt::{Display, Formatter};
 
@@ -16,7 +16,7 @@ pub fn write_state(store: ClientStore<MemStore>) -> Result<(), StoreError> {
 
     write_headers();
 
-    for (_key, value) in transactions_space {
+    for value in transactions_space.values() {
         let state = deserialize::<ClientState>(value.as_ref())?;
         let state = State::from(state);
         println!("{}", state);
